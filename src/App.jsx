@@ -53,9 +53,38 @@ function SliderControl({ label, value, onChange, min, max, step = 1 }) {
   );
 }
 
-const Label = ({ children }) => (
+const Lbl = ({ children }) => (
   <span style={{ fontSize: 11, fontWeight: 500, color: "#888", letterSpacing: "0.04em", display: "block", marginBottom: 6 }}>{children}</span>
 );
+
+const BG_COLORS = ["#ffffff", "#f5f5f4", "#e7e5e4", "#1c1917", "#000000", "#0f172a"];
+
+const pillBtn = (active) => ({
+  padding: "6px 11px", border: "1px solid",
+  borderColor: active ? "#222" : "#e0e0e0",
+  borderRadius: 6, cursor: "pointer",
+  background: active ? "#222" : "#fff",
+  color: active ? "#fff" : "#666",
+  fontSize: 11, fontWeight: 500,
+});
+
+const checkBtnStyle = (active) => ({
+  padding: "6px 10px", border: "1px solid",
+  borderColor: active ? "#222" : "#e0e0e0",
+  borderRadius: 6, cursor: "pointer", textAlign: "left",
+  background: active ? "#fafafa" : "#fff",
+  color: active ? "#222" : "#999",
+  fontSize: 11, fontWeight: 500,
+  display: "flex", alignItems: "center", gap: 7,
+});
+
+const checkBoxStyle = (active) => ({
+  width: 14, height: 14, borderRadius: 3, flexShrink: 0,
+  background: active ? "#222" : "#fff",
+  border: active ? "none" : "1.5px solid #ccc",
+  display: "flex", alignItems: "center", justifyContent: "center",
+  fontSize: 9, color: "#fff", lineHeight: 1,
+});
 
 export default function DotLogoTool() {
   const [dotSize, setDotSize] = useState(10);
@@ -200,44 +229,15 @@ export default function DotLogoTool() {
     link.download = "dot-logo.svg"; link.href = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })); link.click();
   };
 
-  const BG_COLORS = ["#ffffff", "#f5f5f4", "#e7e5e4", "#1c1917", "#000000", "#0f172a"];
-
-  const pillBtn = (active) => ({
-    padding: "6px 11px", border: "1px solid",
-    borderColor: active ? "#222" : "#e0e0e0",
-    borderRadius: 6, cursor: "pointer",
-    background: active ? "#222" : "#fff",
-    color: active ? "#fff" : "#666",
-    fontSize: 11, fontWeight: 500,
-  });
-
-  const checkBtn = (active) => ({
-    padding: "6px 10px", border: "1px solid",
-    borderColor: active ? "#222" : "#e0e0e0",
-    borderRadius: 6, cursor: "pointer", textAlign: "left",
-    background: active ? "#fafafa" : "#fff",
-    color: active ? "#222" : "#999",
-    fontSize: 11, fontWeight: 500,
-    display: "flex", alignItems: "center", gap: 7,
-  });
-
-  const checkBox = (active) => ({
-    width: 14, height: 14, borderRadius: 3, flexShrink: 0,
-    background: active ? "#222" : "#fff",
-    border: active ? "none" : "1.5px solid #ccc",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 9, color: "#fff", lineHeight: 1,
-  });
-
-  // Shared controls content
-  const Controls = () => (
+  // Controls as inline JSX (NOT a component) so sliders never remount
+  const controlsJSX = (
     <>
       <SliderControl label="Dot Size" value={dotSize} onChange={setDotSize} min={1} max={20} />
       <SliderControl label="Spacing" value={spacing} onChange={setSpacing} min={0} max={20} />
       <SliderControl label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} />
 
       <div style={{ marginBottom: 16 }}>
-        <Label>Shape</Label>
+        <Lbl>Shape</Lbl>
         <div style={{ display: "flex", gap: 5 }}>
           {[{ id: "circle", icon: "●" }, { id: "square", icon: "■" }, { id: "diamond", icon: "◆" }].map((s) => (
             <button key={s.id} onClick={() => setShape(s.id)} style={{
@@ -248,7 +248,7 @@ export default function DotLogoTool() {
       </div>
 
       <div style={{ marginBottom: 14 }}>
-        <Label>Color</Label>
+        <Lbl>Color</Lbl>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
           {[{ id: "original", label: "Original" }, { id: "colored", label: "Filtered" }, { id: "mono", label: "Mono" }].map((m) => (
             <button key={m.id} onClick={() => setColorMode(m.id)} style={pillBtn(colorMode === m.id)}>{m.label}</button>
@@ -265,8 +265,8 @@ export default function DotLogoTool() {
       )}
 
       <div style={{ marginBottom: 14 }}>
-        <button onClick={() => setHalftones(!halftones)} style={checkBtn(halftones)}>
-          <span style={checkBox(halftones)}>{halftones ? "✓" : ""}</span>
+        <button onClick={() => setHalftones(!halftones)} style={checkBtnStyle(halftones)}>
+          <span style={checkBoxStyle(halftones)}>{halftones ? "✓" : ""}</span>
           Halftones
         </button>
       </div>
@@ -274,7 +274,7 @@ export default function DotLogoTool() {
       <div style={{ height: 1, background: "#eee", margin: "2px 0 14px" }} />
 
       <div style={{ marginBottom: 16 }}>
-        <Label>Background</Label>
+        <Lbl>Background</Lbl>
         <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
           {BG_COLORS.map((c) => (
             <button key={c} onClick={() => setPanelBg(c)} style={{
@@ -305,6 +305,22 @@ export default function DotLogoTool() {
         </div>
       )}
     </>
+  );
+
+  const uploadArea = (maxW, margin) => (
+    <div onClick={() => fileInputRef.current?.click()} style={{
+      width: "100%", maxWidth: maxW, aspectRatio: "4/3",
+      border: `1.5px dashed ${isDragging ? "#222" : "#ccc"}`,
+      borderRadius: 14, cursor: "pointer",
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      gap: 10, background: "rgba(255,255,255,0.6)", margin,
+    }}>
+      <div style={{ fontSize: 28, color: "#bbb", lineHeight: 1 }}>⠿</div>
+      <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: "#999" }}>Drop your logo / icon here</p>
+      <p style={{ margin: 0, fontSize: 11, color: "#bbb" }}>PNG or SVG</p>
+      <input ref={fileInputRef} type="file" accept=".png,.svg,image/png,image/svg+xml"
+        style={{ display: "none" }} onChange={(e) => handleFile(e.target.files[0])} />
+    </div>
   );
 
   return (
@@ -350,6 +366,8 @@ export default function DotLogoTool() {
         </div>
       </div>
 
+      <canvas ref={hiddenCanvasRef} style={{ display: "none" }} />
+
       {/* Desktop layout */}
       {!isMobile && (
         <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
@@ -357,7 +375,7 @@ export default function DotLogoTool() {
             width: 232, flexShrink: 0, padding: "18px 16px",
             borderRight: "1px solid #eee", background: "#fff", overflowY: "auto",
           }}>
-            <Controls />
+            {controlsJSX}
           </div>
           <div
             style={{
@@ -368,22 +386,7 @@ export default function DotLogoTool() {
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
           >
-            <canvas ref={hiddenCanvasRef} style={{ display: "none" }} />
-            {!imageData ? (
-              <div onClick={() => fileInputRef.current?.click()} style={{
-                width: "100%", maxWidth: 420, aspectRatio: "4/3",
-                border: `1.5px dashed ${isDragging ? "#222" : "#ccc"}`,
-                borderRadius: 14, cursor: "pointer",
-                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                gap: 10, background: "rgba(255,255,255,0.6)", margin: 32,
-              }}>
-                <div style={{ fontSize: 28, color: "#bbb", lineHeight: 1 }}>⠿</div>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: "#999" }}>Drop your logo / icon here</p>
-                <p style={{ margin: 0, fontSize: 11, color: "#bbb" }}>PNG or SVG</p>
-                <input ref={fileInputRef} type="file" accept=".png,.svg,image/png,image/svg+xml"
-                  style={{ display: "none" }} onChange={(e) => handleFile(e.target.files[0])} />
-              </div>
-            ) : (
+            {!imageData ? uploadArea(420, 32) : (
               <canvas ref={canvasRef} style={{ maxWidth: "100%", maxHeight: "100%", display: "block" }} />
             )}
           </div>
@@ -393,7 +396,6 @@ export default function DotLogoTool() {
       {/* Mobile layout */}
       {isMobile && (
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, position: "relative" }}>
-          {/* Canvas area */}
           <div
             style={{
               flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
@@ -403,35 +405,15 @@ export default function DotLogoTool() {
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
           >
-            <canvas ref={hiddenCanvasRef} style={{ display: "none" }} />
-            {!imageData ? (
-              <div onClick={() => fileInputRef.current?.click()} style={{
-                width: "calc(100% - 48px)", maxWidth: 360, aspectRatio: "4/3",
-                border: `1.5px dashed ${isDragging ? "#222" : "#ccc"}`,
-                borderRadius: 14, cursor: "pointer",
-                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                gap: 10, background: "rgba(255,255,255,0.6)", margin: 24,
-              }}>
-                <div style={{ fontSize: 28, color: "#bbb", lineHeight: 1 }}>⠿</div>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: "#999" }}>Drop your logo / icon here</p>
-                <p style={{ margin: 0, fontSize: 11, color: "#bbb" }}>PNG or SVG</p>
-                <input ref={fileInputRef} type="file" accept=".png,.svg,image/png,image/svg+xml"
-                  style={{ display: "none" }} onChange={(e) => handleFile(e.target.files[0])} />
-              </div>
-            ) : (
+            {!imageData ? uploadArea(360, 24) : (
               <canvas ref={canvasRef} style={{ maxWidth: "100%", maxHeight: "100%", display: "block", padding: 12 }} />
             )}
           </div>
 
-          {/* Mobile bottom sheet */}
           {showControls && (
             <>
-              <div
-                onClick={() => setShowControls(false)}
-                style={{
-                  position: "absolute", inset: 0, background: "rgba(0,0,0,0.25)", zIndex: 30,
-                }}
-              />
+              <div onClick={() => setShowControls(false)}
+                style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.25)", zIndex: 30 }} />
               <div style={{
                 position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 31,
                 background: "#fff", borderTop: "1px solid #eee",
@@ -440,11 +422,10 @@ export default function DotLogoTool() {
                 padding: "20px 18px",
                 boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
               }}>
-                {/* Drag handle */}
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
                   <div style={{ width: 36, height: 4, borderRadius: 2, background: "#ddd" }} />
                 </div>
-                <Controls />
+                {controlsJSX}
               </div>
             </>
           )}
