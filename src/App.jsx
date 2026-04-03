@@ -232,7 +232,7 @@ export default function DotLogoTool() {
   // Controls as inline JSX (NOT a component) so sliders never remount
   const controlsJSX = (
     <>
-      <SliderControl label="Dot Size" value={dotSize} onChange={setDotSize} min={1} max={20} />
+      <SliderControl label="Dot Size" value={dotSize} onChange={setDotSize} min={1} max={80} />
       <SliderControl label="Spacing" value={spacing} onChange={setSpacing} min={0} max={20} />
       <SliderControl label="Threshold" value={threshold} onChange={setThreshold} min={0} max={255} />
 
